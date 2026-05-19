@@ -3,7 +3,7 @@ iPhotocopy.ps1
 
 Copies photos and videos from an iPhone to Windows using the Explorer (Shell/MTP) interface.
 
-- Copies all media older than a given cutoff date
+- Copies all media through a given cutoff month
 - Preserves Apple’s YYYYMM bucket folders
 - Safe to re-run (skips existing files)
 - No iTunes SDK, no WIA, no third-party tools
@@ -17,16 +17,23 @@ License: MIT
 #>
 
 param(
-  [string]$cutoff = "2023-07-01",
-  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneArchive"
+  [string]$cutoffMonth = "202412",
+  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive"
 )
 
-$dt = [datetime]$cutoff
-$cutoffMonth = $dt.ToString("yyyyMM")
+if ($cutoffMonth -notmatch '^\d{6}$') {
+  Write-Host "FAIL: cutoffMonth must be in YYYYMM format, for example 202412"
+  exit 10
+}
+
+$cutoffMonthNumber = [int]$cutoffMonth.Substring(4,2)
+if ($cutoffMonthNumber -lt 1 -or $cutoffMonthNumber -gt 12) {
+  Write-Host "FAIL: cutoffMonth must use a valid month from 01 to 12"
+  exit 10
+}
 
 Write-Host "iPhotocopy"
-Write-Host "Cutoff date:" $dt.ToString("yyyy-MM-dd")
-Write-Host "Cutoff month:" $cutoffMonth
+Write-Host "Copy through month:" $cutoffMonth
 Write-Host "Destination:" $destRoot
 
 $sh = New-Object -ComObject Shell.Application
@@ -47,16 +54,52 @@ $monthFolders = @(
     Sort-Object Name
 )
 
-if ($monthFolders.Count -eq 0) { Write-Host "FAIL: No YYYYMM folders found"; exit 3 }
+if ($monthFolders.Count -eq 0) {
+  $dcim = $internalFolder.Items() | Where-Object { $_.IsFolder -and $_.Name -eq "DCIM" } | Select-Object -First 1
+  if ($dcim) {
+    $dcimFolder = $dcim.GetFolder()
+    $monthFolders = @(
+      $dcimFolder.Items() |
+        Where-Object { $_.IsFolder -and $_.Name -match '^\d{6}' } |
+        Sort-Object Name
+    )
+  }
+}
+
+if ($monthFolders.Count -eq 0) {
+  $internalFolders = @($internalFolder.Items() | Where-Object { $_.IsFolder } | ForEach-Object { $_.Name })
+  Write-Host "FAIL: No YYYYMM folders found"
+  if ($internalFolders.Count -gt 0) {
+    Write-Host "Folders found under Internal Storage:" ($internalFolders -join ", ")
+  } else {
+    Write-Host "No folders were visible under Internal Storage."
+  }
+
+  if ($dcimFolder) {
+    $dcimFolders = @($dcimFolder.Items() | Where-Object { $_.IsFolder } | ForEach-Object { $_.Name })
+    if ($dcimFolders.Count -gt 0) {
+      Write-Host "Folders found under Internal Storage\DCIM:" ($dcimFolders -join ", ")
+    } else {
+      Write-Host "No folders were visible under Internal Storage\DCIM."
+    }
+  }
+
+  Write-Host "Tip: If the iPhone was recently connected, unlock it and reconnect the USB cable; stale MTP connections can return empty folder lists."
+  exit 3
+}
 
 New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
 
 $copyFlags = 16 + 1024
+$scanned = 0
+$alreadyPresent = 0
 $queued = 0
+$startingCount = (Get-ChildItem -Path $destRoot -Recurse -File -ErrorAction SilentlyContinue).Count
+$folderResults = @()
 
 foreach ($mf in $monthFolders) {
   $m = $mf.Name.Substring(0,6)
-  if ($m -ge $cutoffMonth) { continue }
+  if ($m -gt $cutoffMonth) { continue }
 
   $srcFolder = $mf.GetFolder()
 
@@ -64,22 +107,46 @@ foreach ($mf in $monthFolders) {
   New-Item -ItemType Directory -Path $destFolderPath -Force | Out-Null
   $destFolderShell = $sh.Namespace($destFolderPath)
   if (-not $destFolderShell) { Write-Host "FAIL: Cannot open destination folder: $destFolderPath"; exit 4 }
+  $folderStartingCount = (Get-ChildItem -LiteralPath $destFolderPath -File -ErrorAction SilentlyContinue).Count
 
   $files = @($srcFolder.Items() | Where-Object { -not $_.IsFolder })
-  Write-Host ("Queueing {0} files from {1}..." -f $files.Count, $mf.Name)
+  $folderAlreadyPresent = 0
+  $folderQueued = 0
 
   foreach ($f in $files) {
+    $scanned++
     $target = Join-Path $destFolderPath $f.Name
-    if (Test-Path $target) { continue }
+    if (Test-Path $target) {
+      $alreadyPresent++
+      $folderAlreadyPresent++
+      continue
+    }
 
     $destFolderShell.CopyHere($f, $copyFlags)
     $queued++
+    $folderQueued++
   }
+
+  $folderResults += [PSCustomObject]@{
+    Name = $mf.Name
+    Path = $destFolderPath
+    Scanned = $files.Count
+    AlreadyPresent = $folderAlreadyPresent
+    Queued = $folderQueued
+    StartingCount = $folderStartingCount
+  }
+
+  Write-Host ("Scanned '{0}': {1} found, {2} already present, {3} queued for copy" -f $mf.Name, $files.Count, $folderAlreadyPresent, $folderQueued)
 }
 
-Write-Host "DONE. Queued for copy:" $queued
+Write-Host "DONE."
+Write-Host "Files scanned:" $scanned
+Write-Host "Already present before copy:" $alreadyPresent
+Write-Host "Queued for copy this run:" $queued
+Write-Host "Files present before copy:" $startingCount
 
 if ($queued -eq 0) {
+  Write-Host "Files copied this run: 0"
   Write-Host "Nothing to copy. Exiting."
   exit 0
 }
@@ -105,4 +172,14 @@ while ($true) {
   Start-Sleep -Seconds $pollInterval
 }
 
-Write-Host "COPY COMPLETE. Files present:" $lastCount
+Write-Host "COPY COMPLETE."
+Write-Host "Files present after copy:" $lastCount
+Write-Host "Copy result by folder:"
+foreach ($result in $folderResults) {
+  $folderFinalCount = (Get-ChildItem -LiteralPath $result.Path -File -ErrorAction SilentlyContinue).Count
+  $folderCopied = $folderFinalCount - $result.StartingCount
+  if ($result.Queued -gt 0 -or $folderCopied -gt 0) {
+    Write-Host ("'{0}': {1} already present | {2} queued for copy | {3} copied" -f $result.Name, $result.AlreadyPresent, $result.Queued, $folderCopied)
+  }
+}
+Write-Host "Files copied this run:" ($lastCount - $startingCount)
