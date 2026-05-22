@@ -3,7 +3,7 @@ iPhotocopy.ps1
 
 Copies photos and videos from an iPhone to Windows using the Explorer (Shell/MTP) interface.
 
-- Copies all media through a given cutoff month
+- Copies all media through a given cutoff month, or only the current month
 - Preserves Apple’s YYYYMM bucket folders
 - Safe to re-run (skips existing files)
 - No iTunes SDK, no WIA, no third-party tools
@@ -18,23 +18,35 @@ License: MIT
 
 param(
   [string]$cutoffMonth = "202412",
-  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive"
+  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive",
+  [Alias("m")]
+  [switch]$CurrentMonth
 )
 
-if ($cutoffMonth -notmatch '^\d{6}$') {
+$currentMonthValue = Get-Date -Format "yyyyMM"
+$selectedMonth = if ($CurrentMonth) { $currentMonthValue } else { $cutoffMonth }
+
+if ($selectedMonth -notmatch '^\d{6}$') {
   Write-Host "FAIL: cutoffMonth must be in YYYYMM format, for example 202412"
   exit 10
 }
 
-$cutoffMonthNumber = [int]$cutoffMonth.Substring(4,2)
-if ($cutoffMonthNumber -lt 1 -or $cutoffMonthNumber -gt 12) {
+$selectedMonthNumber = [int]$selectedMonth.Substring(4,2)
+if ($selectedMonthNumber -lt 1 -or $selectedMonthNumber -gt 12) {
   Write-Host "FAIL: cutoffMonth must use a valid month from 01 to 12"
   exit 10
 }
 
+$copyMode = if ($CurrentMonth) { "current month only" } else { "through cutoff month" }
+$destRootFullPath = [System.IO.Path]::GetFullPath($destRoot)
+$destRootUri = ([System.Uri]$destRootFullPath).AbsoluteUri
+
 Write-Host "iPhotocopy"
-Write-Host "Copy through month:" $cutoffMonth
-Write-Host "Destination:" $destRoot
+Write-Host "Copy mode:" $copyMode
+Write-Host "Selected month:" $selectedMonth
+Write-Host "Destination:" $destRootFullPath
+Write-Host "Open in Explorer:" $destRootUri
+Write-Host "Explorer command:" ("explorer.exe `"{0}`"" -f $destRootFullPath)
 
 $sh = New-Object -ComObject Shell.Application
 $pc = $sh.Namespace(17)   # This PC
@@ -88,22 +100,26 @@ if ($monthFolders.Count -eq 0) {
   exit 3
 }
 
-New-Item -ItemType Directory -Path $destRoot -Force | Out-Null
+New-Item -ItemType Directory -Path $destRootFullPath -Force | Out-Null
 
 $copyFlags = 16 + 1024
 $scanned = 0
 $alreadyPresent = 0
 $queued = 0
-$startingCount = (Get-ChildItem -Path $destRoot -Recurse -File -ErrorAction SilentlyContinue).Count
+$startingCount = (Get-ChildItem -Path $destRootFullPath -Recurse -File -ErrorAction SilentlyContinue).Count
 $folderResults = @()
 
 foreach ($mf in $monthFolders) {
   $m = $mf.Name.Substring(0,6)
-  if ($m -gt $cutoffMonth) { continue }
+  if ($CurrentMonth) {
+    if ($m -ne $selectedMonth) { continue }
+  } elseif ($m -gt $selectedMonth) {
+    continue
+  }
 
   $srcFolder = $mf.GetFolder()
 
-  $destFolderPath = Join-Path $destRoot $mf.Name
+  $destFolderPath = Join-Path $destRootFullPath $mf.Name
   New-Item -ItemType Directory -Path $destFolderPath -Force | Out-Null
   $destFolderShell = $sh.Namespace($destFolderPath)
   if (-not $destFolderShell) { Write-Host "FAIL: Cannot open destination folder: $destFolderPath"; exit 4 }
@@ -159,7 +175,7 @@ $lastCount = -1
 $stableFor = 0
 
 while ($true) {
-  $count = (Get-ChildItem -Path $destRoot -Recurse -File -ErrorAction SilentlyContinue).Count
+  $count = (Get-ChildItem -Path $destRootFullPath -Recurse -File -ErrorAction SilentlyContinue).Count
 
   if ($count -eq $lastCount) {
     $stableFor += $pollInterval

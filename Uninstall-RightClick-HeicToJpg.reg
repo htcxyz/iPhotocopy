@@ -1,0 +1,5 @@
+Windows Registry Editor Version 5.00
+
+[-HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heic\shell\iPhotocopyConvertToJpg]
+
+[-HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heif\shell\iPhotocopyConvertToJpg]

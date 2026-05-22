@@ -3,7 +3,9 @@
 edit/set cutoff month in iPhotocopy.ps1 
 param(
   [string]$cutoffMonth = "202412",
-  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive"
+  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive",
+  [Alias("m")]
+  [switch]$CurrentMonth
 )
 
 Open Windows powershell as admin.
@@ -15,6 +17,7 @@ cd "C:\Users\egank\Documents\GitHub\iPhotocopy"
 Phone must be connected USB and Unlocked with code 
 - you will be able to see an click on your Phone in Windows Explorer as a drive if youre phone is securely connected.
 Cutoff month = last iPhone month folder to copy, in YYYYMM format. Example: 202412 copies through December 2024.
+CurrentMonth switch = copy only this calendar month's iPhone folder to the PC. Short form: `-m`.
 Does not delete on image your Phone - It just copies / backup to destRoot Folder.
 Manually delete at your discression on the phone.
 
@@ -37,7 +40,8 @@ No iTunes SDK, no WIA, no third-party tools.
 ## What it does
 
 - Copies **photos and videos** from an iPhone to Windows
-- Copies everything through a given **cutoff month** (Set cutoff month in script or parameters)
+- Copies everything through a given **cutoff month** (set cutoff month in script or parameters)
+- Or copies only the current calendar month with `-CurrentMonth`
 - Preserves Apple’s **YYYYMM bucket folders** (e.g. `202306__`, `202306_a`)
 - Safe to re-run (already copied files are skipped)
 - Waits for copy completion (or exits immediately if nothing new)
@@ -89,9 +93,33 @@ From the folder containing the files:
 
 iPhotocopy.cmd
 
+Double-click `current.bat` to copy only the current month, then open the archive folder in Explorer.
+
 ### Or call PowerShell directly:
 
 powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1
+
+### Copy current month only:
+
+powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 -CurrentMonth
+
+### Short form:
+
+powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 -m
+
+### Double-click current month:
+
+current.bat
+
+### Right-click HEIC to JPG:
+
+Double-click `Install-RightClick-HeicToJpg.reg`, accept the Windows prompt, then right-click a `.HEIC` or `.HEIF` file and choose `Convert HEIC to JPG`.
+
+The JPG is created beside the original file. The original HEIC/HEIF file is not changed.
+
+For correct iPhone HEIC color conversion, use ImageMagick. If conversion says no HEIC converter was found, double-click `Install-ImageMagick-Admin.bat`, approve the admin prompt, then try the right-click conversion again.
+
+To remove the menu item, double-click `Uninstall-RightClick-HeicToJpg.reg`.
 
 ### With parameters:
 
@@ -105,6 +133,8 @@ powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 `
 iPhotocopy
 Copy through month: 202307
 Destination: C:\Users\htcxyz\Pictures\iPhoneCopyArchive
+Open in Explorer: file:///C:/Users/htcxyz/Pictures/iPhoneCopyArchive
+Explorer command: explorer.exe "C:\Users\htcxyz\Pictures\iPhoneCopyArchive"
 Scanned '201908__': 2 found, 2 already present, 0 queued for copy
 Scanned '202302__': 1 found, 1 already present, 0 queued for copy
 Scanned '202303__': 5 found, 5 already present, 0 queued for copy

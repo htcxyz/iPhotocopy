@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heic\shell\iPhotocopyConvertToJpg]
+@="Convert HEIC to JPG"
+"Icon"="imageres.dll,-70"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heic\shell\iPhotocopyConvertToJpg\command]
+@="powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\egank\\Documents\\GitHub\\iPhotocopy\\Convert-HeicToJpg.ps1\" \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heif\shell\iPhotocopyConvertToJpg]
+@="Convert HEIF to JPG"
+"Icon"="imageres.dll,-70"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.heif\shell\iPhotocopyConvertToJpg\command]
+@="powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\egank\\Documents\\GitHub\\iPhotocopy\\Convert-HeicToJpg.ps1\" \"%1\""
