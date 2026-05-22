@@ -1,0 +1,8 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.mov\shell\iPhotocopyCompressToMp4]
+@="Compress MOV to MP4"
+"Icon"="imageres.dll,-68"
+
+[HKEY_CURRENT_USER\Software\Classes\SystemFileAssociations\.mov\shell\iPhotocopyCompressToMp4\command]
+@="powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"C:\\Users\\egank\\Documents\\GitHub\\iPhotocopy\\Convert-MovToMp4.ps1\" \"%1\""

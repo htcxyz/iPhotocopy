@@ -121,6 +121,16 @@ For correct iPhone HEIC color conversion, use ImageMagick. If conversion says no
 
 To remove the menu item, double-click `Uninstall-RightClick-HeicToJpg.reg`.
 
+### Right-click MOV to MP4:
+
+Double-click `Install-RightClick-MovToMp4.reg`, accept the Windows prompt, then right-click a `.MOV` file and choose `Compress MOV to MP4`.
+
+The MP4 is created beside the original file. The original MOV file is not changed.
+
+MOV compression is tuned for messaging: up to 1280px wide, 30fps, about 900k video plus 96k audio. That keeps normal-screen playback usable while making files much smaller.
+
+To remove the menu item, double-click `Uninstall-RightClick-MovToMp4.reg`.
+
 ### With parameters:
 
 powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 `
