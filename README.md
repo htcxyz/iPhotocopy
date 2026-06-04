@@ -10,7 +10,7 @@ param(
 
 Open Windows powershell as admin.
 
-cd "C:\Users\egank\Documents\GitHub\iPhotocopy"
+cd "path\to\iPhotocopy"
 ./iPhotocopy.ps1
 
 #BASICS
@@ -83,6 +83,20 @@ Parse check passed.
 
 ## Usage
 
+### New machine setup:
+
+Copy or download the iPhotocopy folder, then use:
+
+- `iPhotocopy-current Month.bat` to copy the current month
+- `iPhotocopy-YYYYMM.bat` style files to copy through a month
+- `Install-RightClick-Tools.bat` to install right-click HEIC-to-JPG and MOV-to-MP4 tools for the current Windows user
+
+The copy scripts create `%USERPROFILE%\Pictures\iPhotoCopy` automatically.
+
+Right-click HEIC conversion needs ImageMagick. Run `Install-ImageMagick-Admin.bat` once if ImageMagick is not installed.
+
+Right-click MOV compression needs `ffmpeg`.
+
 ### Command line (recommended)
 
 From the folder containing the files:
@@ -125,23 +139,23 @@ The window stays open after the run so you can read the summary.
 
 ### Right-click HEIC to JPG:
 
-Double-click `Install-RightClick-HeicToJpg.reg`, accept the Windows prompt, then right-click a `.HEIC` or `.HEIF` file and choose `Convert HEIC to JPG`.
+Double-click `Install-RightClick-Tools.bat`, then right-click a `.HEIC` or `.HEIF` file and choose `Convert HEIC to JPG`.
 
 The JPG is created beside the original file. The original HEIC/HEIF file is not changed.
 
 For correct iPhone HEIC color conversion, use ImageMagick. If conversion says no HEIC converter was found, double-click `Install-ImageMagick-Admin.bat`, approve the admin prompt, then try the right-click conversion again.
 
-To remove the menu item, double-click `Uninstall-RightClick-HeicToJpg.reg`.
+To remove the menu item, double-click `Uninstall-RightClick-Tools.bat`.
 
 ### Right-click MOV to MP4:
 
-Double-click `Install-RightClick-MovToMp4.reg`, accept the Windows prompt, then right-click a `.MOV` file and choose `Compress MOV to MP4`.
+Double-click `Install-RightClick-Tools.bat`, then right-click a `.MOV` file and choose `Compress MOV to MP4`.
 
 The MP4 is created beside the original file. The original MOV file is not changed.
 
 MOV compression is tuned for messaging: up to 1280px wide, 30fps, about 900k video plus 96k audio. That keeps normal-screen playback usable while making files much smaller.
 
-To remove the menu item, double-click `Uninstall-RightClick-MovToMp4.reg`.
+To remove the menu item, double-click `Uninstall-RightClick-Tools.bat`.
 
 ### With parameters:
 
