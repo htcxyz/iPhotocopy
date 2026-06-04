@@ -3,7 +3,7 @@
 edit/set cutoff month in iPhotocopy.ps1 
 param(
   [string]$cutoffMonth = "202412",
-  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive",
+  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhotoCopy",
   [Alias("m")]
   [switch]$CurrentMonth
 )
@@ -111,6 +111,18 @@ powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 -m
 
 current.bat
 
+### Double-click through a cutoff month:
+
+Rename `iPhotocopy-202412.bat` to the month you want, for example `iPhotocopy-202503.bat`, then double-click it.
+
+The batch file reads the `YYYYMM` from its own filename and runs:
+
+powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 -cutoffMonth "YYYYMM"
+
+`YYYY` is the 4 digit year, for example `2025`. `MM` is the 2 digit month to copy through, for example `03`. `iPhotocopy-202503.bat` copies all photos from the oldest photo on your phone up to the end of March 2025.
+
+The window stays open after the run so you can read the summary.
+
 ### Right-click HEIC to JPG:
 
 Double-click `Install-RightClick-HeicToJpg.reg`, accept the Windows prompt, then right-click a `.HEIC` or `.HEIF` file and choose `Convert HEIC to JPG`.
@@ -135,16 +147,16 @@ To remove the menu item, double-click `Uninstall-RightClick-MovToMp4.reg`.
 
 powershell -ExecutionPolicy Bypass -File iPhotocopy.ps1 `
   -cutoffMonth "202307" `
-  -destRoot "D:\iPhoneCopyArchive"
+  -destRoot "D:\iPhotoCopy"
 
 
 
   .\iPhotocopy.ps1
 iPhotocopy
 Copy through month: 202307
-Destination: C:\Users\htcxyz\Pictures\iPhoneCopyArchive
-Open in Explorer: file:///C:/Users/htcxyz/Pictures/iPhoneCopyArchive
-Explorer command: explorer.exe "C:\Users\htcxyz\Pictures\iPhoneCopyArchive"
+Destination: C:\Users\htcxyz\Pictures\iPhotoCopy
+Open in Explorer: file:///C:/Users/htcxyz/Pictures/iPhotoCopy
+Explorer command: explorer.exe "C:\Users\htcxyz\Pictures\iPhotoCopy"
 Scanned '201908__': 2 found, 2 already present, 0 queued for copy
 Scanned '202302__': 1 found, 1 already present, 0 queued for copy
 Scanned '202303__': 5 found, 5 already present, 0 queued for copy

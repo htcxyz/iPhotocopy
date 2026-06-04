@@ -2,7 +2,7 @@
 setlocal
 
 set "SCRIPT_DIR=%~dp0"
-set "DEST_ROOT=%USERPROFILE%\Pictures\iPhoneCopyArchive"
+set "DEST_ROOT=%USERPROFILE%\Pictures\iPhotoCopy"
 
 powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%iPhotocopy.ps1" -m
 if errorlevel 1 (

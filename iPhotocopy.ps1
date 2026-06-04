@@ -18,7 +18,7 @@ License: MIT
 
 param(
   [string]$cutoffMonth = "202412",
-  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhoneCopyArchive",
+  [string]$destRoot = "$env:USERPROFILE\Pictures\iPhotoCopy",
   [Alias("m")]
   [switch]$CurrentMonth
 )
